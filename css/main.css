@@ -1,0 +1,20 @@
+
+* {
+    user-select: none;
+    -webkit-user-select: none;
+    font-family: Pieces-of-Eight;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+*::-webkit-scrollbar {
+    display: none;
+}
+
+h1, h3, h5 {
+    color: #A69C71 !important;
+}
+
+.no-title {
+    color: #dee2e6 !important;
+}

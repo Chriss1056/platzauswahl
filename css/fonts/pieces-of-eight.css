@@ -1,0 +1,12 @@
+@font-face {
+    font-family: 'Pieces-of-Eight';
+    src: url('../../assets/fonts/Pieces-of-Eight/PiecesofEight.eot');
+    src: url('../../assets/fonts/Pieces-of-Eight/PiecesofEight.eot?#iefix') format('embedded-opentype'),
+        url('../../assets/fonts/Pieces-of-Eight/PiecesofEight.woff2') format('woff2'),
+        url('../../assets/fonts/Pieces-of-Eight/PiecesofEight.woff') format('woff'),
+        url('../../assets/fonts/Pieces-of-Eight/PiecesofEight.ttf')  format('truetype'),
+        url('../../assets/fonts/Pieces-of-Eight/PiecesofEight.svg#PiecesofEight') format('svg');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
