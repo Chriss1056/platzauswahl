@@ -24,27 +24,53 @@ if (!isset($_SESSION["allowed"])) {
 $servername = "localhost";
 $username = "Database-1";
 $password = "Database-1#root";
+$database = "plaetze";
 
-$connection = new mysqli($servername, $username, $password);
+$connection = new mysqli($servername, $username, $password, $database);
 
 if ($connection->connect_error) {
-    unset($_POST["class"]);
-    unset($_POST["email"]);
-    unset($_POST["sirname"]);
-    unset($_POST["name"]);
-    unset($_POST["verify"]);
+    session_destroy();
     header("location: fail.php?error-code=$connection->connect_error");
 }
 
-
-
-$connection->close();
+$query_common = "SELECT EntryID, TableNum, SeatNum, Reserved FROM reservations";
+$result_common_unparsed = $connection->query($query_common);
 
 if (isset($_POST["check"])) {
+    if ($_POST["table1"] == $_POST["table2"]) {
+        session_destroy();
+        header("location: fail.php?error-code=ERR_DOUBLE_RESERVATION_ATTEMPTED");
+        die();
+    }
+
+    $connection->autocommit(0);
+    $connection->begin_transaction();
+
+    $arr1 = explode("-", $_POST["table1"]);
+    $query1 = "UPDATE reservations SET Reserved=1, UserID=$_SESSION[UserID] WHERE TableNum='$arr1[0]' AND SeatNum='$arr1[1]';";
+    $connection->query($query1);
+
+    if (isset($_POST["table2"])) {
+        $arr2 = explode("-", $_POST["table2"]);
+        $query2 = "UPDATE reservations SET Reserved=1, UserID=$_SESSION[UserID] WHERE TableNum='$arr2[0]' AND SeatNum='$arr2[1]';";
+        $connection->query($query2);
+    }
+
+    if (!$connection->commit()) {
+        $connection->rollback();
+        session_destroy();
+        header("location: fail.php?error-code=ERR_COMMIT_ERROR");
+    } else {
+        session_destroy();
+        header("location: success.php");
+    }
+    die();
 }
 
+$connection->close();
 ?>
 <body data-bs-theme="dark" style="background-color: #000000">
+<?php print_r($_POST["table1"]); print_r($_POST["table2"]); ?>
 <div style="width: 100% !important; height: 10% !important;">
     <h1 style="text-align: center">Wählen Sie bitte zwei Sitzplätze aus.</h1>
     <h4 style="text-align: center">Sie müssen mindestens einen Sitzplatz wählen.</h4>
@@ -55,13 +81,35 @@ if (isset($_POST["check"])) {
         <select name="table1" id="table1" class="form-select form-select-lg mb-3" aria-label="class-selector" required>
             <option value="" selected>None</option>
             <?php
-
+            $i = 6;
+            $result_common_unparsed->data_seek(0);
+            while (($row = $result_common_unparsed->fetch_assoc()) != false) {
+                if ($i == 6) {
+                    $i = 0;
+                    echo "<optgroup label='--------------------------'></optgroup>";
+                }
+                if ($row["Reserved"] == 0) {
+                    echo "<option value='$row[TableNum]-$row[SeatNum]'>Table $row[TableNum] - Seat $row[SeatNum]</option>";
+                }
+                $i++;
+            }
             ?>
         </select>
         <select name="table2" id="table2" class="form-select form-select-lg mb-3" aria-label="class-selector">
             <option value="" selected>None</option>
             <?php
-
+            $i = 6;
+            $result_common_unparsed->data_seek(0);
+            while (($row = $result_common_unparsed->fetch_assoc()) != false) {
+                if ($i == 6) {
+                    $i = 0;
+                    echo "<optgroup label='--------------------------'></optgroup>";
+                }
+                if ($row["Reserved"] == 0) {
+                    echo "<option value='$row[TableNum]-$row[SeatNum]'>Table $row[TableNum] - Seat $row[SeatNum]</option>";
+                }
+                $i++;
+            }
             ?>
         </select>
         <input name="check" id="check" class="input-group btn btn-outline-primary mb-3" type="submit" value="Überprüfen">

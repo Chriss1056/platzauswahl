@@ -26,76 +26,60 @@ if(isset($_POST["verify"])) {
     $servername = "localhost";
     $username = "Database-1";
     $password = "Database-1#root";
+    $database = "plaetze";
 
-    $connection = new mysqli($servername, $username, $password);
+    $connection = new mysqli($servername, $username, $password, $database);
 
     if ($connection->connect_error) {
         unset($_POST["class"]);
-        unset($_POST["email"]);
-        unset($_POST["sirname"]);
-        unset($_POST["name"]);
-        unset($_POST["verify"]);
-        header("location: fail.php?error-code=$connection->connect_error");
-    }
-
-    $query1 = "SELECT name, sirname, class FROM plaetze.users WHERE name='$_POST[name]' AND sirname='$_POST[sirname]';";
-    $result_unparsed1 = $connection->query($query1);
-
-    $query2 = "SELECT name, sirname, class FROM plaetze.reservations WHERE name='$_POST[name]' AND sirname='$_POST[sirname]';";
-    $result_unparsed2 = $connection->query($query2);
-
-    $connection->close();
-
-    if ($result_unparsed1->num_rows > 0) {
-        $result1 = $result_unparsed1->fetch_assoc();
-
-        $email_db = strtolower($result1["name"]) . "." . strtolower($result1["sirname"]) . "@htl-braunau.at";
-
-        if ($result1["name"] === $_POST["name"] && $result1["sirname"] === $_POST["sirname"] && $email_db === strtolower($_POST["email"]) && $result1["class"] === $_POST["class"]) {
-            if ($result_unparsed2->num_rows !== false) {
-                $_SESSION["allowed"] = 1;
-                $_SESSION["name"] = $_POST["name"];
-                $_SESSION["sirname"] = $_POST["sirname"];
-                $_SESSION["class"] = $_POST["class"];
-                unset($_POST["class"]);
-                unset($_POST["email"]);
-                unset($_POST["sirname"]);
-                unset($_POST["name"]);
-                unset($_POST["verify"]);
-                header("location: select.php");
-            } else {
-                unset($_POST["class"]);
-                unset($_POST["email"]);
-                unset($_POST["sirname"]);
-                unset($_POST["name"]);
-                unset($_POST["verify"]);
-                session_destroy();
-                header("location: fail.php?error-code=ERR_USER_CHOSE_ALREADY");
-            }
-        } else {
-            unset($_POST["class"]);
-            unset($_POST["email"]);
-            unset($_POST["sirname"]);
-            unset($_POST["name"]);
-            unset($_POST["verify"]);
-            session_destroy();
-            header("location: fail.php?error-code=ERR_USER_E_MAIL_INVALID");
-        }
-    } else {
-        unset($_POST["class"]);
-        unset($_POST["email"]);
         unset($_POST["sirname"]);
         unset($_POST["name"]);
         unset($_POST["verify"]);
         session_destroy();
-        header("location: fail.php?error-code=ERR_NO_USER_FOUND");
+        header("location: fail.php?error-code=$connection->connect_error");
     }
 
+    $query1 = "SELECT id, name, sirname, class FROM users WHERE name='$_POST[name]' AND sirname='$_POST[sirname]';";
+    $result_unparsed1 = $connection->query($query1);
+
+    if ($result_unparsed1->num_rows > 0) {
+        $parsed_result1 = $result_unparsed1->fetch_assoc();
+        $query2 = "SELECT UserID FROM reservations WHERE UserID='$parsed_result1[id]';";
+        $result_unparsed2 = $connection->query($query2);
+        $connection->close();
+        if ($result_unparsed2->num_rows == 0) {
+            $_SESSION["allowed"] = 1;
+            $_SESSION["UserID"] = $parsed_result1["id"];
+            $_SESSION["name"] = $_POST["name"];
+            $_SESSION["sirname"] = $_POST["sirname"];
+            $_SESSION["class"] = $_POST["class"];
+            unset($_POST["class"]);
+            unset($_POST["sirname"]);
+            unset($_POST["name"]);
+            unset($_POST["verify"]);
+            header("location: select.php");
+        } else {
+            unset($_POST["class"]);
+            unset($_POST["sirname"]);
+            unset($_POST["name"]);
+            unset($_POST["verify"]);
+            session_destroy();
+            header("location: fail.php?error-code=ERR_USER_ALREADY_CHOSE");
+        }
+    } else {
+        $connection->close();
+        unset($_POST["class"]);
+        unset($_POST["sirname"]);
+        unset($_POST["name"]);
+        unset($_POST["verify"]);
+        session_destroy();
+        header("location: fail.php?error-code=ERR_USER_NOT_FOUND");
+    }
+    die();
 
     RET:
 }
 unset($_POST["class"]);
-unset($_POST["email"]);
 unset($_POST["sirname"]);
 unset($_POST["name"]);
 unset($_POST["verify"]);
@@ -115,12 +99,8 @@ unset($_POST["verify"]);
                 <input type="text" class="form-control" name="sirname" id="sirname" placeholder="Vorname" autocomplete="off" required>
                 <label for="sirname">Familienname</label>
             </div>
-            <div class="form-floating mb-3">
-                <input type="email" class="form-control" name="email" id="email" placeholder="Schul Email" autocomplete="off" required>
-                <label for="email">Schul Email</label>
-            </div>
             <select name="class" id="class" class="form-select form-select-lg" aria-label="class-selector" required>
-                <option value="" selected>None</option>
+                <option value="" selected>Klasse</option>
                 <option value="4AFELC">4AFELC</option>
                 <option value="5AHME">5AHME</option>
                 <option value="5BHELS">5BHELS</option>
