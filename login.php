@@ -1,4 +1,4 @@
-<?php session_start(); session_unset(); ?>
+<?php session_start(); session_unset(); // te^2F4w5 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -25,8 +25,8 @@ if(isset($_POST["verify"])) {
 
     $servername = "localhost";
     $username = "Database-1";
-    $password = "Database-1#root";
-    $database = "plaetze";
+    $password = "te^2F4w5";
+    $database = "ball_main";
 
     $connection = new mysqli($servername, $username, $password, $database);
 

@@ -18,13 +18,13 @@
 </head>
 <?php
 if (!isset($_SESSION["allowed"])) {
-    header("location: index.php");
+    header("location: login.php");
 }
 
 $servername = "localhost";
 $username = "Database-1";
-$password = "Database-1#root";
-$database = "plaetze";
+$password = "te^2F4w5";
+$database = "ball_main";
 
 $connection = new mysqli($servername, $username, $password, $database);
 
@@ -43,15 +43,44 @@ if (isset($_POST["check"])) {
         die();
     }
 
+    if ($_POST["table1"] == "false") {
+        session_destroy();
+        header("location: fail.php?error-code=ERR_INVALID_SELECTION");
+        die();
+    }
+
+    $arr1 = explode("-", $_POST["table1"]);
+    if (isset($_POST["table2"])) {
+        $arr2 = explode("-", $_POST["table2"]);
+    }
+
+    $query_check1 = "SELECT Reserved FROM reservations WHERE TableNum='$arr1[0]' AND SeatNum='$arr1[1]';";
+    $check1 = $connection->query($query_check1);
+    if (isset($_POST["table2"])) {
+        $query_check2 = "SELECT Reserved FROM reservations WHERE TableNum='$arr2[0]' AND SeatNum='$arr2[1]';";
+        $check2 = $connection->query($query_check2);
+    }
+
+    if ($check1->fetch_assoc()["Reserved"] == 1) {
+        session_destroy();
+        header("location: fail.php?error-code=ERR_BOOKED_DURING_WAIT");
+        die();
+    }
+    if (isset($_POST["table2"])) {
+        if ($check2->fetch_assoc()["Reserved"] == 1) {
+            session_destroy();
+            header("location: fail.php?error-code=ERR_BOOKED_DURING_WAIT");
+            die();
+        }
+    }
+
     $connection->autocommit(0);
     $connection->begin_transaction();
 
-    $arr1 = explode("-", $_POST["table1"]);
     $query1 = "UPDATE reservations SET Reserved=1, UserID=$_SESSION[UserID] WHERE TableNum='$arr1[0]' AND SeatNum='$arr1[1]';";
     $connection->query($query1);
 
     if (isset($_POST["table2"])) {
-        $arr2 = explode("-", $_POST["table2"]);
         $query2 = "UPDATE reservations SET Reserved=1, UserID=$_SESSION[UserID] WHERE TableNum='$arr2[0]' AND SeatNum='$arr2[1]';";
         $connection->query($query2);
     }
@@ -70,7 +99,6 @@ if (isset($_POST["check"])) {
 $connection->close();
 ?>
 <body data-bs-theme="dark" style="background-color: #000000">
-<?php print_r($_POST["table1"]); print_r($_POST["table2"]); ?>
 <div style="width: 100% !important; height: 10% !important;">
     <h1 style="text-align: center">Wählen Sie bitte zwei Sitzplätze aus.</h1>
     <h4 style="text-align: center">Sie müssen mindestens einen Sitzplatz wählen.</h4>
