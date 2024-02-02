@@ -24,8 +24,8 @@ if(isset($_POST["verify"])) {
     }
 
     $servername = "localhost";
-    $username = "Database-1";
-    $password = "te^2F4w5";
+    $username = "";
+    $password = "";
     $database = "ball_main";
 
     $connection = new mysqli($servername, $username, $password, $database);
